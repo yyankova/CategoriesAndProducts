@@ -36,51 +36,54 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <EntityDeploy Include="Models.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>Models.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <None Include="Models.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>Models.edmx</DependentUpon>
-      <LastGenOutput>Models.Context.cs</LastGenOutput>
-    </None>
-    <None Include="Models.edmx.diagram">
-      <DependentUpon>Models.edmx</DependentUpon>
-    </None>
-    <None Include="Models.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>Models.edmx</DependentUpon>
-      <LastGenOutput>Models.cs</LastGenOutput>
-    </None>
     <None Include="packages.config" />
+    <EntityDeploy Include="ProductsDBModels.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>ProductsDBModels.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="ProductsDBModels.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>ProductsDBModels.edmx</DependentUpon>
+      <LastGenOutput>ProductsDBModels.Context.cs</LastGenOutput>
+    </None>
+    <None Include="ProductsDBModels.edmx.diagram">
+      <DependentUpon>ProductsDBModels.edmx</DependentUpon>
+    </None>
+    <None Include="ProductsDBModels.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>ProductsDBModels.edmx</DependentUpon>
+      <LastGenOutput>ProductsDBModels.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Category.cs">
-      <DependentUpon>Models.tt</DependentUpon>
+      <DependentUpon>ProductsDBModels.tt</DependentUpon>
     </Compile>
     <Compile Include="EFRepository.cs" />
     <Compile Include="IProductsData.cs" />
     <Compile Include="IRepository.cs" />
-    <Compile Include="Models.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Models.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Models.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Models.edmx</DependentUpon>
-    </Compile>
     <Compile Include="Product.cs">
-      <DependentUpon>Models.tt</DependentUpon>
+      <DependentUpon>ProductsDBModels.tt</DependentUpon>
     </Compile>
     <Compile Include="ProductsData.cs" />
+    <Compile Include="ProductsDBModels.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProductsDBModels.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ProductsDBModels.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProductsDBModels.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ProductsDBModels.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProductsDBModels.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="sysdiagram.cs">
+      <DependentUpon>ProductsDBModels.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EntityFramework">

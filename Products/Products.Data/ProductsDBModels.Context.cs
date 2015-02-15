@@ -13,10 +13,10 @@ namespace Products.Data
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class ProductsDBEntities : DbContext
+    public partial class ProductsDBModels : DbContext
     {
-        public ProductsDBEntities()
-            : base("name=ProductsDBEntities")
+        public ProductsDBModels()
+            : base("name=ProductsDBModels")
         {
         }
     
@@ -27,5 +27,6 @@ namespace Products.Data
     
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<sysdiagram> sysdiagrams { get; set; }
     }
 }

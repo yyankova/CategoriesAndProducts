@@ -12,14 +12,12 @@ namespace Products.Data
     using System;
     using System.Collections.Generic;
     
-    public partial class Product
+    public partial class sysdiagram
     {
-        public int ProductId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public int CategoryId { get; set; }
-        public byte[] Image { get; set; }
-    
-        public virtual Category Category { get; set; }
+        public string name { get; set; }
+        public int principal_id { get; set; }
+        public int diagram_id { get; set; }
+        public Nullable<int> version { get; set; }
+        public byte[] definition { get; set; }
     }
 }

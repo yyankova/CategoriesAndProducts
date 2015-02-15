@@ -10,7 +10,8 @@ namespace Products.Data
         private DbContext context;
         private IDictionary<Type, object> repositories;
 
-        public ProductsData() : this(new ProductsDBEntities())
+        public ProductsData()
+            : this(new ProductsDBModels())
         {
         }
 

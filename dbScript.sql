@@ -2,6 +2,8 @@ USE [master]
 GO
 CREATE DATABASE [ProductsDB]
 GO
+ALTER DATABASE [ProductsDB] SET COMPATIBILITY_LEVEL = 110
+GO
 IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
 begin
 EXEC [ProductsDB].[dbo].[sp_fulltext_database] @action = 'enable'
@@ -65,6 +67,7 @@ ALTER DATABASE [ProductsDB] SET TARGET_RECOVERY_TIME = 0 SECONDS
 GO
 USE [ProductsDB]
 GO
+/****** Object:  Table [dbo].[Categories]    Script Date: 2/15/2015 11:02:01 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -80,6 +83,7 @@ CREATE TABLE [dbo].[Categories](
 ) ON [PRIMARY]
 
 GO
+/****** Object:  Table [dbo].[Products]    Script Date: 2/15/2015 11:02:01 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -88,7 +92,7 @@ CREATE TABLE [dbo].[Products](
 	[ProductId] [int] IDENTITY(1,1) NOT NULL,
 	[Name] [nvarchar](50) NULL,
 	[Description] [nvarchar](500) NULL,
-	[CategoryId] [int] NULL,
+	[CategoryId] [int] NOT NULL,
 	[Image] [image] NULL,
  CONSTRAINT [PK_Products] PRIMARY KEY CLUSTERED 
 (
@@ -105,6 +109,32 @@ GO
 INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (2, N'Accessories', N'Hats, jewels, scarfs description')
 GO
 INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (3, N'Chocolate', N'Chocolate description')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (4, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (6, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (7, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (8, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (9, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (10, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (11, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (12, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (13, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (14, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (15, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (16, N'New category', N'fdfdfdfdfdfdfdf')
+GO
+INSERT [dbo].[Categories] ([CategoryId], [Name], [Description]) VALUES (17, N'New category', N'fdfdfdfdfdfdfdf')
 GO
 SET IDENTITY_INSERT [dbo].[Categories] OFF
 GO
