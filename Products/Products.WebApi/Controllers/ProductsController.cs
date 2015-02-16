@@ -4,8 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using System.Diagnostics;
+using System.Collections.Specialized;
+using System.IO;
 
 namespace Products.WebApi.Controllers
 {
@@ -27,43 +33,78 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpPost]
-        public IHttpActionResult Create(ProductModel inputProduct)
+        public async Task<IHttpActionResult> Create()
         {
-            if (String.IsNullOrEmpty(inputProduct.Name))
+            if (!Request.Content.IsMimeMultipartContent())
             {
-                return this.BadRequest(EmptyProductNameMessage);
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
             }
 
-            if (inputProduct.CategoryId == null)
+            string root = HttpContext.Current.Server.MapPath("~/App_Data");
+            var provider = new MultipartFormDataStreamProvider(root);
+
+            try
             {
-                return this.BadRequest(EmptyCategoryMessage);
+                await Request.Content.ReadAsMultipartAsync(provider);
+
+                Product dbProduct = new Product();
+                foreach (var key in provider.FormData.AllKeys)
+                {
+                    string val = provider.FormData.GetValues(key)[0];
+                    string property = key.ToLower();
+                    if (property == "name")
+                    {
+                        if (String.IsNullOrEmpty(val))
+                        {
+                            return this.BadRequest(EmptyProductNameMessage);
+                        }
+
+                        dbProduct.Name = val;
+                    }
+                    else if (property == "description")
+                    {
+                        dbProduct.Description = val;
+                    }
+                    else if (property == "categoryid")
+                    {
+                        if (String.IsNullOrEmpty(val))
+                        {
+                            return this.BadRequest(EmptyCategoryMessage);
+                        }
+
+                        int categoryId = int.Parse(val);
+                        var dbCategory = this.data
+                            .Categories
+                            .Find(categoryId);
+
+                        if (dbCategory == null)
+                        {
+                            return BadRequest(String.Format(NonExistingCategoryMessage, categoryId));
+                        }
+
+                        dbProduct.CategoryId = categoryId;
+                    }
+                }
+
+                MultipartFileData file = provider.FileData[0];
+                if (file != null)
+                {
+                    dbProduct.Image = File.ReadAllBytes(file.LocalFileName);
+                }
+
+                this.data
+                    .Products
+                    .Add(dbProduct);
+                this.data
+                    .SaveChanges();
+
+                //TODO: check location
+                return this.Created<int>("", dbProduct.ProductId);
             }
-
-            int categoryId = (int)inputProduct.CategoryId;
-            var dbCategory = this.data
-                .Categories
-                .Find(categoryId);
-
-            if (dbCategory == null)
+            catch (System.Exception e)
             {
-                return BadRequest(String.Format(NonExistingCategoryMessage, categoryId));
+                return InternalServerError(e);
             }
-
-            Product dbProduct = new Product()
-            {
-                Name = inputProduct.Name,
-                Description = inputProduct.Description,
-                CategoryId = categoryId,
-                //Image = 
-            };
-            this.data
-                .Products
-                .Add(dbProduct);
-            this.data
-                .SaveChanges();
-
-            //TODO: check location
-            return this.Created<int>("", dbProduct.ProductId);
         }
 
         [HttpGet]
@@ -122,10 +163,10 @@ namespace Products.WebApi.Controllers
         //    {
         //        products.Where(p => p.Name.ToLower().Contains(name.ToLower()));
         //    }
-            
+
         //    products
         //        .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name });
-            
+
         //    return Ok(products);
         //}
 
@@ -183,7 +224,7 @@ namespace Products.WebApi.Controllers
         //    {
         //        return BadRequest(String.Format(ProductNotFoundMessage, id));
         //    }
-            
+
         //    this.data
         //        .Products
         //        .Delete(product);
