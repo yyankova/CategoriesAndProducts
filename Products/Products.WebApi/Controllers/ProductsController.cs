@@ -35,76 +35,26 @@ namespace Products.WebApi.Controllers
         [HttpPost]
         public async Task<IHttpActionResult> Create()
         {
-            if (!Request.Content.IsMimeMultipartContent())
+            Product product = new Product();
+            return await this.UpdateProduct(product, true);
+        }
+
+        [HttpPut]
+        [Route("api/products/update/{id}")]
+        public async Task<IHttpActionResult> Update(int id)
+        {
+            var product = this.data
+                .Products
+                .All()
+                .Where(p => p.ProductId == id)
+                .FirstOrDefault();
+
+            if (product == null)
             {
-                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                return BadRequest(String.Format(ProductNotFoundMessage, id));
             }
 
-            string root = HttpContext.Current.Server.MapPath("~/App_Data");
-            var provider = new MultipartFormDataStreamProvider(root);
-
-            try
-            {
-                await Request.Content.ReadAsMultipartAsync(provider);
-
-                Product dbProduct = new Product();
-                foreach (var key in provider.FormData.AllKeys)
-                {
-                    string val = provider.FormData.GetValues(key)[0];
-                    string property = key.ToLower();
-                    if (property == "name")
-                    {
-                        if (String.IsNullOrEmpty(val))
-                        {
-                            return this.BadRequest(EmptyProductNameMessage);
-                        }
-
-                        dbProduct.Name = val;
-                    }
-                    else if (property == "description")
-                    {
-                        dbProduct.Description = val;
-                    }
-                    else if (property == "categoryid")
-                    {
-                        if (String.IsNullOrEmpty(val))
-                        {
-                            return this.BadRequest(EmptyCategoryMessage);
-                        }
-
-                        int categoryId = int.Parse(val);
-                        var dbCategory = this.data
-                            .Categories
-                            .Find(categoryId);
-
-                        if (dbCategory == null)
-                        {
-                            return BadRequest(String.Format(NonExistingCategoryMessage, categoryId));
-                        }
-
-                        dbProduct.CategoryId = categoryId;
-                    }
-                }
-
-                MultipartFileData file = provider.FileData[0];
-                if (file != null)
-                {
-                    dbProduct.Image = File.ReadAllBytes(file.LocalFileName);
-                }
-
-                this.data
-                    .Products
-                    .Add(dbProduct);
-                this.data
-                    .SaveChanges();
-
-                //TODO: check location
-                return this.Created<int>("", dbProduct.ProductId);
-            }
-            catch (System.Exception e)
-            {
-                return InternalServerError(e);
-            }
+            return await this.UpdateProduct(product, false);
         }
 
         [HttpGet]
@@ -147,91 +97,147 @@ namespace Products.WebApi.Controllers
             return Ok(product);
         }
 
-        //[HttpGet]
-        //public IHttpActionResult Search(int? category, string name)
-        //{
-        //    var products = this.data
-        //        .Products
-        //        .All();
-        //    if (category != null)
-        //    {
-        //        int categoryId = (int)category;
-        //        products.Where(p => p.CategoryId == category);
-        //    }
+        //TODO: fix, it only works if the two params are present: api/products/search?name=klkl&category=
+        [HttpGet]
+        public IHttpActionResult Search(int? category, string name)
+        {
+            var products = this.data
+                .Products
+                .All();
+            if (category != null)
+            {
+                int categoryId = (int)category;
+                products = products.Where(p => p.CategoryId == category);
+            }
 
-        //    if (!String.IsNullOrEmpty(name))
-        //    {
-        //        products.Where(p => p.Name.ToLower().Contains(name.ToLower()));
-        //    }
+            if (!String.IsNullOrEmpty(name))
+            {
+                products = products.Where(p => p.Name.ToLower().Contains(name.ToLower()));
+            }
 
-        //    products
-        //        .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name });
+            var result = products
+                .Select(p => new ProductModel() { 
+                    ProductId = p.ProductId, 
+                    Name = p.Name, 
+                    Description = p.Description, 
+                    CategoryName = p.Category.Name });
 
-        //    return Ok(products);
-        //}
+            return Ok(result);
+        }
 
-        //[HttpPut]
-        //public IHttpActionResult Update(ProductModel inputProduct)
-        //{
-        //    if (String.IsNullOrEmpty(inputProduct.Name))
-        //    {
-        //        return BadRequest(EmptyProductNameMessage);
-        //    }
+        [HttpDelete]
+        [Route("api/products/delete/{id}")]
+        public IHttpActionResult Delete(int id)
+        {
+            var product = this.data
+                .Products
+                .All()
+                .Where(p => p.ProductId == id)
+                .FirstOrDefault();
 
-        //    int id = inputProduct.ProductId;
-        //    var product = this.data
-        //        .Products
-        //        .All()
-        //        .Where(p => p.ProductId == id)
-        //        .FirstOrDefault();
+            if (product == null)
+            {
+                return BadRequest(String.Format(ProductNotFoundMessage, id));
+            }
 
-        //    if (product == null)
-        //    {
-        //        return BadRequest(String.Format(ProductNotFoundMessage, id));
-        //    }
+            this.data
+                .Products
+                .Delete(product);
+            this.data
+                .SaveChanges();
 
-        //    product.Name = inputProduct.Name;
-        //    product.Description = inputProduct.Description;
-        //    if (inputProduct.CategoryId != null)
-        //    {
-        //        int categoryId = (int)inputProduct.CategoryId;
-        //        var dbCategory = this.data
-        //            .Categories
-        //            .Find(categoryId);
-        //        if (dbCategory != null)
-        //        {
-        //            product.CategoryId = categoryId;
-        //        } 
-        //    }
+            return Ok();
+        }
 
-        //    this.data
-        //        .SaveChanges();
+        private async Task<IHttpActionResult> UpdateProduct(Product dbProduct, bool isNewProduct)
+        {
+            if (!Request.Content.IsMimeMultipartContent())
+            {
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+            }
 
-        //    return Ok(product);
-        //}
+            string root = HttpContext.Current.Server.MapPath("~/App_Data");
+            var provider = new MultipartFormDataStreamProvider(root);
 
-        //[HttpDelete]
-        //[Route("api/products/delete/{id}")]
-        //public IHttpActionResult Delete(int id)
-        //{
-        //    var product = this.data
-        //        .Products
-        //        .All()
-        //        .Where(p => p.ProductId == id)
-        //        .FirstOrDefault();
+            try
+            {
+                await Request.Content.ReadAsMultipartAsync(provider);
 
-        //    if (product == null)
-        //    {
-        //        return BadRequest(String.Format(ProductNotFoundMessage, id));
-        //    }
+                //Product name
+                if (provider.FormData.GetValues("name") == null)
+                {
+                    return this.BadRequest(EmptyProductNameMessage);
+                }
 
-        //    this.data
-        //        .Products
-        //        .Delete(product);
-        //    this.data
-        //        .SaveChanges();
+                string name = provider.FormData.GetValues("name")[0];
+                if (String.IsNullOrEmpty(name))
+                {
+                    return this.BadRequest(EmptyProductNameMessage);
+                }
 
-        //    return Ok();
-        //}
+                dbProduct.Name = name;
+
+                //Product description
+                if (provider.FormData.GetValues("description") != null)
+                {
+                    dbProduct.Description = provider.FormData.GetValues("description")[0];
+                }
+
+                //Product category;
+                if (provider.FormData.GetValues("categoryid") == null)
+                {
+                    return this.BadRequest(EmptyCategoryMessage);
+                }
+
+                string categoryIdAsString = provider.FormData.GetValues("categoryid")[0];
+                if (String.IsNullOrEmpty(categoryIdAsString))
+                {
+                    return this.BadRequest(EmptyCategoryMessage);
+                }
+
+                int categoryId;
+                if (!int.TryParse(categoryIdAsString, out categoryId))
+                {
+                    return this.BadRequest(String.Format(NonExistingCategoryMessage, categoryId));
+                }
+
+                var dbCategory = this.data
+                    .Categories
+                    .Find(categoryId);
+                if (dbCategory == null)
+                {
+                    return BadRequest(String.Format(NonExistingCategoryMessage, categoryId));
+                }
+
+                dbProduct.CategoryId = categoryId;
+
+                //Product image
+                if (provider.FileData.Count > 0)
+                {
+                    MultipartFileData file = provider.FileData[0];
+                    if (file != null)
+                    {
+                        dbProduct.Image = File.ReadAllBytes(file.LocalFileName);
+                        File.Delete(file.LocalFileName);
+                    }
+                }
+
+                if (isNewProduct)
+                {
+                    this.data
+                        .Products
+                        .Add(dbProduct);
+                }
+
+                this.data
+                    .SaveChanges();
+
+                return Ok(dbProduct.ProductId);
+            }
+            catch (System.Exception e)
+            {
+                return InternalServerError(e);
+            }
+        }
     }
 }
