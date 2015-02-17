@@ -25,6 +25,7 @@ namespace Products.WebApi.Controllers
         private const int PageSize = 5;
         private const string EmptyCategoryNameMessage = "Category name must not be empty";
         private const string CategoryNotFoundMessage = "Category with id {0} does not exist";
+        private const string MissingCategoryId = "Category id is empty";
 
         private IProductsData data;
 
@@ -57,7 +58,7 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpGet]
-        public IHttpActionResult Get([FromUri]int? page)
+        public IHttpActionResult Get(int? page)
         {
             int currentPage = 0;
             if (page != null)
@@ -78,9 +79,14 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("api/categories/getbyid/{id}")]
-        public IHttpActionResult GetById(int id)
+        [Route("api/categories/byid/{id}")]
+        public IHttpActionResult GetById(int? id)
         {
+            if (id == null)
+            {
+                return BadRequest(MissingCategoryId);
+            }
+
             var category = this.data
                 .Categories
                 .All()
@@ -125,7 +131,6 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpDelete]
-        [Route("api/categories/delete/{id}")]
         public IHttpActionResult Delete(int id)
         {
             var category = this.data

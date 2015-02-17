@@ -5,28 +5,31 @@
 </head>
 <body>
     <script src="scripts/lib/jquery-1.11.2.min.js"></script>
+    <script src="scripts/http-module.js"></script>
+
+    <input type="button" id="del" value="Delete"/>
+    <input type="button" id="update" value="Update" />
+    <input type="button" id="get-by-id" value="Get by id" />
+    <input type="button" id="create" value="Create" />
+
+    <div id="result"></div>
     <script>
         var url = 'http://localhost:53043/api/categories/get?page=0';
-        //$(document).ready(function () {
-        //    $("#test").text(url);
-        //});
-        $.ajax(url, {
-            crossDomain: true,
-            type: 'get',
-            data: null,
-            headers: null,
-            contentType: 'application/json',
-            success: onSuccess,
-            error: onError
+
+        $('create').click(function () {
         });
+
+        httpModule.get(url, onSuccess, onError);
+
         function onSuccess(data) {
-            $('#test').text(data);
+            for (var i = 0; i < data.length; i++) {
+                $('#result').text(data[i].name);
+            }
         }
 
         function onError(err) {
-            $('#test').text(err);
+            $('#result').text(err);
         }
     </script>
-    <div id="test"></div>
 </body>
 </html>

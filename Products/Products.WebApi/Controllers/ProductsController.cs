@@ -43,7 +43,6 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpPut]
-        [Route("api/products/update/{id}")]
         public async Task<IHttpActionResult> Update(int id)
         {
             var product = this.data
@@ -61,7 +60,7 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpGet]
-        public IHttpActionResult Get([FromUri]int? page)
+        public IHttpActionResult Get(int? page)
         {
             int currentPage = 0;
             if (page != null)
@@ -82,7 +81,7 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("api/products/getbyid/{id}")]
+        [Route("api/products/byid/{id}")]
         public IHttpActionResult GetById(int id)
         {
             var product = this.data
@@ -129,7 +128,6 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpDelete]
-        [Route("api/products/delete/{id}")]
         public IHttpActionResult Delete(int id)
         {
             var product = this.data
