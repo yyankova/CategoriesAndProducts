@@ -1,6 +1,4 @@
-﻿using Products.Data;
-using Products.WebApi.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -12,9 +10,14 @@ using System.Web.Http;
 using System.Diagnostics;
 using System.Collections.Specialized;
 using System.IO;
+using System.Web.Http.Cors;
+
+using Products.Data;
+using Products.WebApi.Models;
 
 namespace Products.WebApi.Controllers
 {
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class ProductsController : ApiController
     {
         //TODO: common things in common controller/other class

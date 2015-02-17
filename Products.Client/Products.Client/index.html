@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+</head>
+<body>
+    <script src="scripts/lib/jquery-1.11.2.min.js"></script>
+    <script>
+        var url = 'http://localhost:53043/api/categories/get?page=0';
+        //$(document).ready(function () {
+        //    $("#test").text(url);
+        //});
+        $.ajax(url, {
+            crossDomain: true,
+            type: 'get',
+            data: null,
+            headers: null,
+            contentType: 'application/json',
+            success: onSuccess,
+            error: onError
+        });
+        function onSuccess(data) {
+            $('#test').text(data);
+        }
+
+        function onError(err) {
+            $('#test').text(err);
+        }
+    </script>
+    <div id="test"></div>
+</body>
+</html>
