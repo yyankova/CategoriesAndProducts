@@ -4,6 +4,13 @@
     <title></title>
 </head>
 <body>
+    <a id="categories-link">Categories</a>
+    <a id="products-link">Products</a>
+
+    <div id="content">
+
+    </div>
+
     <script src="scripts/lib/jquery-1.11.2.min.js"></script>
     <script src="scripts/http-module.js"></script>
 
@@ -14,17 +21,26 @@
 
     <div id="result"></div>
     <script>
-        var url = 'http://localhost:53043/api/categories/get?page=0';
+        //$('#products').click();
 
-        $('create').click(function () {
+
+
+        var baseUrl = 'http://localhost:53043/api/categories/';
+        $('#del').click(function () {
+            httpModule.del(baseUrl+20, {}, {}, onSuccess, onError);
         });
-
-        httpModule.get(url, onSuccess, onError);
-
+        $('#update').click(function () {
+            httpModule.put(baseUrl, {}, { categoryId: 20, name: 'Client category edited', description: 'edited client description' }, onSuccess, onError);
+        });
+        $('#get-by-id').click(function () {
+            httpModule.get(baseUrl, {}, onSuccess, onError);
+        });
+        $('#create').click(function () {
+            httpModule.post(baseUrl, {}, {name: 'Client category', description: 'client description'}, onSuccess, onError);
+        });
+        
         function onSuccess(data) {
-            for (var i = 0; i < data.length; i++) {
-                $('#result').text(data[i].name);
-            }
+                $('#result').text(data);
         }
 
         function onError(err) {

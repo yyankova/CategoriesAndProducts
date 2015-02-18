@@ -22,15 +22,15 @@
     }
 
     function del(url, headers, data, onSuccess, onError) {
-        //makeRequest(url, 'DELETE', data, headers, onSuccess, onError);
+        makeRequest(url, 'DELETE', data, headers, onSuccess, onError);
         //If the upper code does not work
-        $.ajax(url, {
-            type: 'POST',
-            data: { _method: 'delete' },
-            headers: headers,
-            success: onSuccess,
-            error: onError
-        });
+        //$.ajax(url, {
+        //    type: 'POST',
+        //    data: { _method: 'delete' },
+        //    headers: headers,
+        //    success: onSuccess,
+        //    error: onError
+        //});
     }
 
     return {

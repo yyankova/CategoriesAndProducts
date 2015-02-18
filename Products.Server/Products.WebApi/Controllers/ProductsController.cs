@@ -20,7 +20,6 @@ namespace Products.WebApi.Controllers
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class ProductsController : ApiController
     {
-        //TODO: common things in common controller/other class
         //TODO: separate view models for input/output
         private const int PageSize = 5;
         private const string EmptyProductNameMessage = "Product name must not be empty";
@@ -30,9 +29,13 @@ namespace Products.WebApi.Controllers
 
         private IProductsData data;
 
-        public ProductsController()
+        public ProductsController() : this(new ProductsData())
         {
-            this.data = new ProductsData();
+        }
+
+        public ProductsController(IProductsData data)
+        {
+            this.data = data;
         }
 
         [HttpPost]
@@ -99,7 +102,6 @@ namespace Products.WebApi.Controllers
             return Ok(product);
         }
 
-        //TODO: fix, it only works if the two params are present: api/products/search?name=klkl&category=
         [HttpGet]
         public IHttpActionResult Search(int? category, string name)
         {

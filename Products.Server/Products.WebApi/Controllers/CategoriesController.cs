@@ -16,12 +16,6 @@ namespace Products.WebApi.Controllers
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class CategoriesController : ApiController
     {
-        //TODO: sorting
-        //TODO: StyleCop
-        //TODO: Use ninject
-        //TODO: Automapper for the view models
-        //TODO: Page size as parameter from the client
-        //TODO: Unit tests
         private const int PageSize = 5;
         private const string EmptyCategoryNameMessage = "Category name must not be empty";
         private const string CategoryNotFoundMessage = "Category with id {0} does not exist";
@@ -30,8 +24,13 @@ namespace Products.WebApi.Controllers
         private IProductsData data;
 
         public CategoriesController()
+            : this(new ProductsData())
+        { 
+        }
+
+        public CategoriesController(IProductsData data)
         {
-            this.data = new ProductsData();
+            this.data = data;
         }
 
         [HttpPost]
@@ -53,8 +52,7 @@ namespace Products.WebApi.Controllers
             this.data
                 .SaveChanges();
 
-            inputCategory.CategoryId = dbCategory.CategoryId;
-            return this.Created<CategoryModel>("", inputCategory);
+            return Ok(dbCategory.CategoryId);
         }
 
         [HttpGet]

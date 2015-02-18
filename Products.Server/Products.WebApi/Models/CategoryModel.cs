@@ -6,7 +6,6 @@ using System.Web;
 
 namespace Products.WebApi.Models
 {
-    //TODO: rename
     public class CategoryModel
     {
         public int CategoryId { get; set; }
