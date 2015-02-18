@@ -19,6 +19,7 @@ namespace Products.Data
         public string Description { get; set; }
         public int CategoryId { get; set; }
         public byte[] Image { get; set; }
+        public string ImageExtension { get; set; }
     
         public virtual Category Category { get; set; }
     }

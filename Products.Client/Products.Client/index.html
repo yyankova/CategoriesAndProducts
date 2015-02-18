@@ -14,8 +14,8 @@
     </style>
 </head>
 <body>
-    <a id="categories-link">Categories</a>
-    <a id="products-link">Products</a>
+    <!--<a id="categories-link">Categories</a>
+    <a id="products-link">Products</a>-->
     <div id="error-message"></div>
     <div id="content">
         <div id="products">
@@ -49,7 +49,7 @@
                 <label for="image-file">Image </label>
                 <input id="image-file" type="file" />
                 <br />
-                <input type="button" value="Cancel" />
+                <input id="cancel-update" type="button" value="Cancel" />
                 <input type="submit" value="Update" />
             </form>
         </div>
@@ -99,8 +99,10 @@
                 data: formData,
                 async: false,
                 success: function (data) {
-                    alert(data)
+                    $updateDiv.hide();
+                    alert('Product with id ' + data + 'was updated');
                 },
+                error: onError,
                 cache: false,
                 contentType: false,
                 processData: false
@@ -108,6 +110,10 @@
 
             return false;
         });
+        $('#cancel-update').click(function () {
+            $updateDiv.hide();
+        });
+
         function loadProducts() {
             var name = $searchProductName.val();
             var categoryId = $searchProductCategory.find(':selected').attr('value');
@@ -134,8 +140,7 @@
                 var product = products[i];
                 var $currentListItem = $listItem.clone();
                 $currentListItem.attr('id', product.ProductId);
-                //TODO: load picture
-                $currentListItem.find('img').attr('src', "http://bestpics.in/wp-content/uploads/2014/08/ice-ice-babies-pictures-2.jpg");
+                $currentListItem.find('img').attr('src', productsBaseUrl + 'img/' + product.ProductId);
                 $currentListItem.find('.name').html(product.Name);
                 $productsList.append($currentListItem);
             }
@@ -163,12 +168,13 @@
             var categoryForUpdatedProduct = $updateDiv.find('#category');
             httpModule.get(productsBaseUrl + 'byid/' + id, function (product) {
                 httpModule.get(categoriesBaseUrl, onLoadUpdateCategories, onError);
+                //TODO: call in call-back
                 $updateDiv.show();
                 $updateDiv.find('#product-id').val(id);
                 $updateDiv.find('#name').val(product.Name);
                 $updateDiv.find('#description').val(product.Description);
                 categoryForUpdatedProduct.val(product.CategoryId);
-                //TODO: load picture
+                $updateDiv.find('img').attr('src', productsBaseUrl + 'img/' + id);
             }, onError);
         }
 

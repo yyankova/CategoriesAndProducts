@@ -14,13 +14,13 @@ using System.Web.Http.Cors;
 
 using Products.Data;
 using Products.WebApi.Models;
+using System.Net.Http.Headers;
 
 namespace Products.WebApi.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class ProductsController : ApiController
     {
-        //TODO: separate view models for input/output
         private const int PageSize = 5;
         private const string EmptyProductNameMessage = "Product name must not be empty";
         private const string EmptyCategoryMessage = "Product category must not be empty";
@@ -39,29 +39,17 @@ namespace Products.WebApi.Controllers
             this.data = data;
         }
 
-        //[HttpPost]
-        //public async Task<IHttpActionResult> Create()
-        //{
-        //    Product product = new Product();
-        //    return await this.UpdateProduct(product, true);
-        //}
-
-        //[HttpPut]
-        //public async Task<IHttpActionResult> Update(int id)
-        //{
-        //    var product = this.data
-        //        .Products
-        //        .All()
-        //        .Where(p => p.ProductId == id)
-        //        .FirstOrDefault();
-
-        //    if (product == null)
-        //    {
-        //        return BadRequest(String.Format(ProductNotFoundMessage, id));
-        //    }
-
-        //    return await this.UpdateProduct(product, false);
-        //}
+        [HttpGet]
+        [Route("api/products/img/{id}")]
+        public HttpResponseMessage Image(int id)
+        {
+            var path = @"C:\Users\User\Desktop\me.png";
+            HttpResponseMessage result = new HttpResponseMessage(HttpStatusCode.OK);
+            var stream = new FileStream(path, FileMode.Open);
+            result.Content = new StreamContent(stream);
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            return result;
+        }
 
         [HttpGet]
         [Route("api/products/byid/{id}")]
