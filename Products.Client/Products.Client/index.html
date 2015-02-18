@@ -30,7 +30,7 @@
             <input id="next-page" type="button" value="Next" />
         </div>        
         <div id="update">
-            <form enctype="multipart/form-data" action="http://localhost:53043/api/products/" method="post">
+            <form id="update-form" enctype="multipart/form-data">
                 <input type="hidden" name="method" value="put" />
                 <input type="hidden" name="id" id="product-id"/>
                 <img width="200" height="100" />
@@ -70,12 +70,8 @@
         var $updateDiv = $('#update');
 
         httpModule.get(categoriesBaseUrl, onLoadSearchCategories, onError);
-        loadProducts(); //TODO: fix
+        loadProducts();
         $updateDiv.hide();
-        
-        //$('#create').click(function () {
-        //    httpModule.post(productsBaseUrl, {name: 'Client category', description: 'client description'}, onSuccess, onError);
-        //});
 
         $searchProductName.keyup(function () {
             currentPage = 0;
@@ -94,7 +90,24 @@
             $('#prev-page').removeAttr('disabled');
             loadProducts();
         });
+        $("#update-form").submit(function () {
+            var formData = new FormData($(this)[0]);
 
+            $.ajax({
+                url: productsBaseUrl,
+                type: 'POST',
+                data: formData,
+                async: false,
+                success: function (data) {
+                    alert(data)
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+
+            return false;
+        });
         function loadProducts() {
             var name = $searchProductName.val();
             var categoryId = $searchProductCategory.find(':selected').attr('value');
