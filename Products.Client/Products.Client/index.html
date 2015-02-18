@@ -31,6 +31,7 @@
     <!--<div id="result"></div>-->
 
     <script>
+        //TODO: organize code in separate files
         var baseUrl = 'http://localhost:53043/api/';
         var productsBaseUrl = baseUrl + '/products/';
         var categoriesBaseUrl = baseUrl + '/categories/';
@@ -38,7 +39,7 @@
         var $searchProductName = $('#name');
         var $searchProductCategory = $('#categories');
         httpModule.get(categoriesBaseUrl, onLoadCategories, onError);
-        httpModule.get(productsBaseUrl + '?page=0', onLoadProducts, onError);
+        search();
         //$('#del').click(function () {
         //    httpModule.del(productsBaseUrl+20, {}, onSuccess, onError);
         //});
@@ -52,29 +53,33 @@
         //function onSuccess(data) {
         //        $('#result').text(data);
         //}
-        $('#name').keyup(search);
-        $('#categories').change(search);
+        $('#name').keyup(function () {
+            currentPage = 0;
+            search();
+        });
+        $('#categories').change(function () {
+            currentPage = 0;
+            search();
+        });
         $('#prev-page').click(function () {
-            var $this = $(this);
             currentPage -= 1;
-            httpModule.get(productsBaseUrl + currentPage, onLoadProducts, onError);
-            if (currentPage == 0) {
-                $this.attr('disabled', 'disabled');
-            }
+            search();
         });
         $('#next-page').click(function () {
             currentPage += 1;
-            httpModule.get(productsBaseUrl + currentPage, onLoadProducts, onError);
             $('#prev-page').removeAttr('disabled');
-            //TODO: last page
+            search();
         });
 
         function search() {
-            //TODO: fix search and paging work together
             var name = $searchProductName.val();
             var categoryId = $searchProductCategory.find(':selected').attr('id');
-            var searchUrl = productsBaseUrl + 'search' + '?name=' + name + '&category=' + categoryId;
+            var searchUrl = productsBaseUrl + '?name=' + name + '&category=' + categoryId + '&page=' + currentPage;
             httpModule.get(searchUrl, onLoadProducts, onError);
+            if (currentPage == 0) {
+                $('#prev-page').attr('disabled', 'disabled');
+            }
+            //TODO: last page disable
         }
 
         function onLoadProducts(products) {

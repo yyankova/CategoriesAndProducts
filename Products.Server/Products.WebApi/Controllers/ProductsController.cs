@@ -62,26 +62,26 @@ namespace Products.WebApi.Controllers
             return await this.UpdateProduct(product, false);
         }
 
-        [HttpGet]
-        public IHttpActionResult Get(int? page)
-        {
-            int currentPage = 0;
-            if (page != null)
-            {
-                currentPage = (int)page;
-            }
+        //[HttpGet]
+        //public IHttpActionResult Get(int? page)
+        //{
+        //    int currentPage = 0;
+        //    if (page != null)
+        //    {
+        //        currentPage = (int)page;
+        //    }
 
-            var products = this.data
-                .Products
-                .All()
-                .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name })
-                .OrderBy(p => p.Name)
-                .Skip(currentPage * PageSize)
-                .Take(PageSize)
-                .ToList();
+        //    var products = this.data
+        //        .Products
+        //        .All()
+        //        .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name })
+        //        .OrderBy(p => p.Name)
+        //        .Skip(currentPage * PageSize)
+        //        .Take(PageSize)
+        //        .ToList();
 
-            return Ok(products);
-        }
+        //    return Ok(products);
+        //}
 
         [HttpGet]
         [Route("api/products/byid/{id}")]
@@ -103,7 +103,7 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpGet]
-        public IHttpActionResult Search(int? category, string name)
+        public IHttpActionResult Search(int? category, string name, int page)
         {
             var products = this.data
                 .Products
@@ -124,7 +124,10 @@ namespace Products.WebApi.Controllers
                     ProductId = p.ProductId, 
                     Name = p.Name, 
                     Description = p.Description, 
-                    CategoryName = p.Category.Name });
+                    CategoryName = p.Category.Name })
+                .OrderBy(p => p.Name)
+                .Skip(page * PageSize)
+                .Take(PageSize);
 
             return Ok(result);
         }
