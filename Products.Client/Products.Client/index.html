@@ -91,6 +91,7 @@
             loadProducts();
         });
         $("#update-form").submit(function () {
+            //TODO: fix file is not sent
             var formData = new FormData($(this)[0]);
 
             $.ajax({

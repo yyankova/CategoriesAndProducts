@@ -39,15 +39,30 @@ namespace Products.WebApi.Controllers
             this.data = data;
         }
 
+        //TODO: Fix pic is accessed at same time
         [HttpGet]
         [Route("api/products/img/{id}")]
         public HttpResponseMessage Image(int id)
         {
-            var path = @"C:\Users\User\Desktop\me.png";
+            var image = this.data
+                .Products
+                .All()
+                .Where(p => p.ProductId == id)
+                .Select(p => new { p.Image, p.ImageExtension })
+                .FirstOrDefault();
+
             HttpResponseMessage result = new HttpResponseMessage(HttpStatusCode.OK);
-            var stream = new FileStream(path, FileMode.Open);
-            result.Content = new StreamContent(stream);
-            result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            if (image.Image == null)
+            {
+                string path = HttpRuntime.AppDomainAppPath + "App_Data/canada.jpg";
+                var stream = new FileStream(path, FileMode.Open);
+                result.Content = new StreamContent(stream);
+                result.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                return result;
+            }
+
+            result.Content = new ByteArrayContent(image.Image);
+            result.Content.Headers.ContentType = new MediaTypeHeaderValue("image/" + image.ImageExtension);
             return result;
         }
 
@@ -135,7 +150,6 @@ namespace Products.WebApi.Controllers
 
             string root = HttpContext.Current.Server.MapPath("~/App_Data");
             var provider = new MultipartFormDataStreamProvider(root);
-
             try
             {
                 await Request.Content.ReadAsMultipartAsync(provider);
@@ -190,6 +204,7 @@ namespace Products.WebApi.Controllers
                     return BadRequest();
                 }
 
+                //Create or find by id the product
                 Product dbProduct;
                 if (httpMethod == "put")
                 {
@@ -237,6 +252,8 @@ namespace Products.WebApi.Controllers
                     if (file != null)
                     {
                         dbProduct.Image = File.ReadAllBytes(file.LocalFileName);
+                        string fileName = file.Headers.ContentDisposition.FileName;
+                        dbProduct.ImageExtension = Path.GetExtension(fileName);
                         File.Delete(file.LocalFileName);
                     }
                 }
