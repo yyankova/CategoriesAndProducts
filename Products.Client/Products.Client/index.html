@@ -8,8 +8,16 @@
     <a id="products-link">Products</a>
     <div id="error-message"></div>
     <div id="content">
+
+        <label for="name">Name</label>
+        <input id="name" type="text" />
+        <label for="categories">Category</label>
+        <select id="categories">
+            <option id="0"></option>
+        </select>
         <ul id="products-list"></ul>
-        <input id="prev-page" type="button" value="Previous" disabled="disabled"/>
+        <input id="prev-page" type="button" value="Previous" disabled="disabled" />
+
         <input id="next-page" type="button" value="Next" />
     </div>
 
@@ -23,36 +31,40 @@
     <!--<div id="result"></div>-->
 
     <script>
-        var baseUrl = 'http://localhost:53043/api/products?page=0';
+        var baseUrl = 'http://localhost:53043/api/';
+        var productsBaseUrl = baseUrl + '/products/';
+        var categoriesBaseUrl = baseUrl + '/categories/';
+        var currentPage = 0;
+        httpModule.get(categoriesBaseUrl, onLoadCategories, onError);
+        httpModule.get(productsBaseUrl + '?page=0', onLoadProducts, onError);
         //$('#del').click(function () {
-        //    httpModule.del(baseUrl+20, {}, onSuccess, onError);
+        //    httpModule.del(productsBaseUrl+20, {}, onSuccess, onError);
         //});
         //$('#update').click(function () {
-        //    httpModule.put(baseUrl, { categoryId: 20, name: 'Client category edited', description: 'edited client description' }, onSuccess, onError);
+        //    httpModule.put(productsBaseUrl, { categoryId: 20, name: 'Client category edited', description: 'edited client description' }, onSuccess, onError);
         //});
         //$('#create').click(function () {
-        //    httpModule.post(baseUrl, {name: 'Client category', description: 'client description'}, onSuccess, onError);
+        //    httpModule.post(productsBaseUrl, {name: 'Client category', description: 'client description'}, onSuccess, onError);
         //});
-        
+
         //function onSuccess(data) {
         //        $('#result').text(data);
         //}
-        var currentPage = 0;
+
         $('#prev-page').click(function () {
             var $this = $(this);
             currentPage -= 1;
-            httpModule.get(baseUrl + currentPage, onLoadProducts, onError);
+            httpModule.get(productsBaseUrl + currentPage, onLoadProducts, onError);
             if (currentPage == 0) {
                 $this.attr('disabled', 'disabled');
             }
         });
         $('#next-page').click(function () {
             currentPage += 1;
-            httpModule.get(baseUrl + currentPage, onLoadProducts, onError);
+            httpModule.get(productsBaseUrl + currentPage, onLoadProducts, onError);
             $('#prev-page').removeAttr('disabled');
             //TODO: last page
         });
-        httpModule.get(baseUrl, onLoadProducts, onError);
 
         function onLoadProducts(products) {
             var $productsList = $('#products-list');
@@ -80,9 +92,26 @@
             //$("ul").on("click", "li", onListItemClick);
         }
 
+        function onLoadCategories(categories) {
+            var $categories = $('#categories');
+            if ($categories.children().length > 1) {
+                return;
+            }            
+
+            var $optionItem = $('<option/>');
+            for (var i = 0; i < categories.length; i++) {
+                var category = categories[i];
+                var $currentOptionItem = $optionItem.clone();
+                $currentOptionItem.attr('id', category.CategoryId);
+                $currentOptionItem.html(category.Name);
+                $categories.append($currentOptionItem);
+            }
+        }
+
         function onError(err) {
             $('#error-message').text(err.message);
         }
     </script>
 </body>
+
 </html>

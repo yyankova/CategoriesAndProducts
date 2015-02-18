@@ -16,7 +16,6 @@ namespace Products.WebApi.Controllers
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class CategoriesController : ApiController
     {
-        private const int PageSize = 5;
         private const string EmptyCategoryNameMessage = "Category name must not be empty";
         private const string CategoryNotFoundMessage = "Category with id {0} does not exist";
         private const string MissingCategoryId = "Category id is empty";
@@ -56,21 +55,13 @@ namespace Products.WebApi.Controllers
         }
 
         [HttpGet]
-        public IHttpActionResult Get(int? page)
+        public IHttpActionResult Get()
         {
-            int currentPage = 0;
-            if (page != null)
-            {
-                currentPage = (int)page;
-            }
-
             var categories = this.data
                 .Categories
                 .All()
                 .Select(c => new CategoryModel() { CategoryId = c.CategoryId, Name = c.Name, Description = c.Description })
                 .OrderBy(c => c.Name)
-                .Skip(currentPage * PageSize)
-                .Take(PageSize)
                 .ToList();
 
             return Ok(categories);
