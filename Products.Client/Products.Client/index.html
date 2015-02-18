@@ -6,45 +6,82 @@
 <body>
     <a id="categories-link">Categories</a>
     <a id="products-link">Products</a>
-
+    <div id="error-message"></div>
     <div id="content">
-
+        <ul id="products-list"></ul>
+        <input id="prev-page" type="button" value="Previous" disabled="disabled"/>
+        <input id="next-page" type="button" value="Next" />
     </div>
 
     <script src="scripts/lib/jquery-1.11.2.min.js"></script>
     <script src="scripts/http-module.js"></script>
 
-    <input type="button" id="del" value="Delete"/>
+    <!--<input type="button" id="del" value="Delete"/>
     <input type="button" id="update" value="Update" />
     <input type="button" id="get-by-id" value="Get by id" />
-    <input type="button" id="create" value="Create" />
+    <input type="button" id="create" value="Create" />-->
+    <!--<div id="result"></div>-->
 
-    <div id="result"></div>
     <script>
-        //$('#products').click();
-
-
-
-        var baseUrl = 'http://localhost:53043/api/categories/';
-        $('#del').click(function () {
-            httpModule.del(baseUrl+20, {}, {}, onSuccess, onError);
-        });
-        $('#update').click(function () {
-            httpModule.put(baseUrl, {}, { categoryId: 20, name: 'Client category edited', description: 'edited client description' }, onSuccess, onError);
-        });
-        $('#get-by-id').click(function () {
-            httpModule.get(baseUrl, {}, onSuccess, onError);
-        });
-        $('#create').click(function () {
-            httpModule.post(baseUrl, {}, {name: 'Client category', description: 'client description'}, onSuccess, onError);
-        });
+        var baseUrl = 'http://localhost:53043/api/products?page=0';
+        //$('#del').click(function () {
+        //    httpModule.del(baseUrl+20, {}, onSuccess, onError);
+        //});
+        //$('#update').click(function () {
+        //    httpModule.put(baseUrl, { categoryId: 20, name: 'Client category edited', description: 'edited client description' }, onSuccess, onError);
+        //});
+        //$('#create').click(function () {
+        //    httpModule.post(baseUrl, {name: 'Client category', description: 'client description'}, onSuccess, onError);
+        //});
         
-        function onSuccess(data) {
-                $('#result').text(data);
+        //function onSuccess(data) {
+        //        $('#result').text(data);
+        //}
+        var currentPage = 0;
+        $('#prev-page').click(function () {
+            var $this = $(this);
+            currentPage -= 1;
+            httpModule.get(baseUrl + currentPage, onLoadProducts, onError);
+            if (currentPage == 0) {
+                $this.attr('disabled', 'disabled');
+            }
+        });
+        $('#next-page').click(function () {
+            currentPage += 1;
+            httpModule.get(baseUrl + currentPage, onLoadProducts, onError);
+            $('#prev-page').removeAttr('disabled');
+            //TODO: last page
+        });
+        httpModule.get(baseUrl, onLoadProducts, onError);
+
+        function onLoadProducts(products) {
+            var $productsList = $('#products-list');
+            $productsList.children().remove();
+
+            var $listItem = $('<li/>')
+                .append($('<img width=50 height=25/>'))
+                .append('<br>')
+                .append('<a href="#" class="name">')
+                .append('<br>')
+                .append('<a href="#" class="edit">Edit </a>')
+                .append('<a href="#" class="delete">Delete </a>')
+                .append('<br>');
+
+            for (var i = 0; i < products.length; i++) {
+                var product = products[i];
+                var $currentListItem = $listItem.clone();
+                $currentListItem.attr('id', product.ProductId);
+                //TODO: load picture
+                $currentListItem.find('img').attr('src', "http://bestpics.in/wp-content/uploads/2014/08/ice-ice-babies-pictures-2.jpg");
+                $currentListItem.find('.name').html(product.Name);
+                $productsList.append($currentListItem);
+            }
+            //TODO: onclick for Edit and Delete
+            //$("ul").on("click", "li", onListItemClick);
         }
 
         function onError(err) {
-            $('#result').text(err);
+            $('#error-message').text(err.message);
         }
     </script>
 </body>
