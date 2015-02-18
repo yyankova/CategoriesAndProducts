@@ -2,94 +2,116 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title></title>
+    <style>
+        li{
+            list-style-type: none;
+            padding-bottom: 10px;
+        }
+        #products, #update{
+            width: 500px;
+            float: left
+        }
+    </style>
 </head>
 <body>
     <a id="categories-link">Categories</a>
     <a id="products-link">Products</a>
     <div id="error-message"></div>
     <div id="content">
-
-        <label for="name">Name</label>
-        <input id="name" type="text" />
-        <label for="categories">Category</label>
-        <select id="categories">
-            <option id=""></option>
-        </select>
-        <ul id="products-list"></ul>
-        <input id="prev-page" type="button" value="Previous" disabled="disabled" />
-
-        <input id="next-page" type="button" value="Next" />
+        <div id="products">
+            <label for="search-name">Name</label>
+            <input id="search-name" type="text" />
+            <label for="search-categories">Category</label>
+            <select id="search-categories">
+                <option id=""></option>
+            </select>
+            <ul id="products-list"></ul>
+            <input id="prev-page" type="button" value="Previous" disabled="disabled" />
+            <input id="next-page" type="button" value="Next" />
+        </div>        
+        <div id="update">
+            <form enctype="multipart/form-data" action="http://localhost:53043/api/products/" method="post">
+                <input type="hidden" name="method" value="put" />
+                <input type="hidden" name="id" id="product-id"/>
+                <img width="200" height="100" />
+                <br />
+                <label for="name">Name </label>
+                <input id="name" name="name" type="text" />
+                <br />
+                <label for="description">Description </label>
+                <textarea id="description" name="description"></textarea>
+                <br />
+                <label for="category">Category</label>
+                <select id="category" name="categoryid">
+                    <option id="0"></option>
+                </select>
+                <br />
+                <label for="image-file">Image </label>
+                <input id="image-file" type="file" />
+                <br />
+                <input type="button" value="Cancel" />
+                <input type="submit" value="Update" />
+            </form>
+        </div>
     </div>
 
     <script src="scripts/lib/jquery-1.11.2.min.js"></script>
     <script src="scripts/http-module.js"></script>
-
-    <!--<input type="button" id="del" value="Delete"/>
-    <input type="button" id="update" value="Update" />
-    <input type="button" id="get-by-id" value="Get by id" />
-    <input type="button" id="create" value="Create" />-->
-    <!--<div id="result"></div>-->
-
     <script>
         //TODO: organize code in separate files
         var baseUrl = 'http://localhost:53043/api/';
-        var productsBaseUrl = baseUrl + '/products/';
-        var categoriesBaseUrl = baseUrl + '/categories/';
+        var productsBaseUrl = baseUrl + 'products/';
+        var categoriesBaseUrl = baseUrl + 'categories/';
+
         var currentPage = 0;
-        var $searchProductName = $('#name');
-        var $searchProductCategory = $('#categories');
-        httpModule.get(categoriesBaseUrl, onLoadCategories, onError);
-        search();
-        //$('#del').click(function () {
-        //    httpModule.del(productsBaseUrl+20, {}, onSuccess, onError);
-        //});
-        //$('#update').click(function () {
-        //    httpModule.put(productsBaseUrl, { categoryId: 20, name: 'Client category edited', description: 'edited client description' }, onSuccess, onError);
-        //});
+        var $searchProductName = $('#search-name');
+        var $searchProductCategory = $('#search-categories');
+        var $productsList = $('#products-list');
+        var $updateDiv = $('#update');
+
+        httpModule.get(categoriesBaseUrl, onLoadSearchCategories, onError);
+        loadProducts(); //TODO: fix
+        $updateDiv.hide();
+        
         //$('#create').click(function () {
         //    httpModule.post(productsBaseUrl, {name: 'Client category', description: 'client description'}, onSuccess, onError);
         //});
 
-        //function onSuccess(data) {
-        //        $('#result').text(data);
-        //}
-        $('#name').keyup(function () {
+        $searchProductName.keyup(function () {
             currentPage = 0;
-            search();
+            loadProducts();
         });
-        $('#categories').change(function () {
+        $searchProductCategory.change(function () {
             currentPage = 0;
-            search();
+            loadProducts();
         });
         $('#prev-page').click(function () {
             currentPage -= 1;
-            search();
+            loadProducts();
         });
         $('#next-page').click(function () {
             currentPage += 1;
             $('#prev-page').removeAttr('disabled');
-            search();
+            loadProducts();
         });
 
-        function search() {
+        function loadProducts() {
             var name = $searchProductName.val();
-            var categoryId = $searchProductCategory.find(':selected').attr('id');
+            var categoryId = $searchProductCategory.find(':selected').attr('value');
             var searchUrl = productsBaseUrl + '?name=' + name + '&category=' + categoryId + '&page=' + currentPage;
-            httpModule.get(searchUrl, onLoadProducts, onError);
+            httpModule.get(searchUrl, renderProducts, onError);
             if (currentPage == 0) {
                 $('#prev-page').attr('disabled', 'disabled');
             }
             //TODO: last page disable
         }
 
-        function onLoadProducts(products) {
-            var $productsList = $('#products-list');
+        function renderProducts(products) {            
             $productsList.children().remove();
 
             var $listItem = $('<li/>')
                 .append($('<img width=50 height=25/>'))
-                .append('<br>')
-                .append('<a href="#" class="name">')
+                .append('<span href="#" class="name">')
                 .append('<br>')
                 .append('<a href="#" class="edit">Edit </a>')
                 .append('<a href="#" class="delete">Delete </a>')
@@ -104,23 +126,55 @@
                 $currentListItem.find('.name').html(product.Name);
                 $productsList.append($currentListItem);
             }
-            //TODO: onclick for Edit and Delete
-            //$("ul").on("click", "li", onListItemClick);
+
+            $productsList.off().on("click", ".edit", onProductEdit);
+            $productsList.on("click", ".delete", onProductDelete);
         }
 
-        function onLoadCategories(categories) {
-            var $categories = $('#categories');
-            if ($categories.children().length > 1) {
-                return;
-            }            
+        function onProductDelete() {
+            var $listElement = $(this).parent();
+            var result = confirm('Delete product ' + $listElement.find('.name').text());
+            if (result == true) {
+                var id = $listElement.attr('id');
+                httpModule.del(productsBaseUrl + id,
+                    {},
+                    function(){
+                        $productsList.find('#' + id).remove();
+                    },
+                    onError);
+            }
+        }
 
+        function onProductEdit() {
+            var id = $(this).parent().attr('id');
+            var categoryForUpdatedProduct = $updateDiv.find('#category');
+            httpModule.get(productsBaseUrl + 'byid/' + id, function (product) {
+                httpModule.get(categoriesBaseUrl, onLoadUpdateCategories, onError);
+                $updateDiv.show();
+                $updateDiv.find('#product-id').val(id);
+                $updateDiv.find('#name').val(product.Name);
+                $updateDiv.find('#description').val(product.Description);
+                categoryForUpdatedProduct.val(product.CategoryId);
+                //TODO: load picture
+            }, onError);
+        }
+
+        function onLoadSearchCategories(categories) {
+            renderCategories(categories, $searchProductCategory);
+        }
+        
+        function onLoadUpdateCategories(categories) {
+            renderCategories(categories, $updateDiv.find('#category'));
+        }
+
+        function renderCategories(categories, categoriesDomElement) {
             var $optionItem = $('<option/>');
             for (var i = 0; i < categories.length; i++) {
                 var category = categories[i];
                 var $currentOptionItem = $optionItem.clone();
-                $currentOptionItem.attr('id', category.CategoryId);
+                $currentOptionItem.attr('value', category.CategoryId);
                 $currentOptionItem.html(category.Name);
-                $categories.append($currentOptionItem);
+                categoriesDomElement.append($currentOptionItem);
             }
         }
 

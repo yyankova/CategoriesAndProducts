@@ -15,8 +15,9 @@ namespace Products.WebApi
 
             routes.MapRoute(
                 name: "SearchProduct",
-                url: "products/search/{name}/{category}",
-                defaults: new { controller = "Home", action = "Index", name = UrlParameter.Optional, category = UrlParameter.Optional }
+                //url: "products/search/{category}/{name}/{page}",
+                url: "products/{category}/{name}/{page}",
+                defaults: new { controller = "Home", action = "Index", category = UrlParameter.Optional, name = UrlParameter.Optional, page = UrlParameter.Optional }
             );
 
             routes.MapRoute(

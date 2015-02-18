@@ -29,7 +29,8 @@ namespace Products.WebApi.Controllers
 
         private IProductsData data;
 
-        public ProductsController() : this(new ProductsData())
+        public ProductsController()
+            : this(new ProductsData())
         {
         }
 
@@ -38,49 +39,28 @@ namespace Products.WebApi.Controllers
             this.data = data;
         }
 
-        [HttpPost]
-        public async Task<IHttpActionResult> Create()
-        {
-            Product product = new Product();
-            return await this.UpdateProduct(product, true);
-        }
-
-        [HttpPut]
-        public async Task<IHttpActionResult> Update(int id)
-        {
-            var product = this.data
-                .Products
-                .All()
-                .Where(p => p.ProductId == id)
-                .FirstOrDefault();
-
-            if (product == null)
-            {
-                return BadRequest(String.Format(ProductNotFoundMessage, id));
-            }
-
-            return await this.UpdateProduct(product, false);
-        }
-
-        //[HttpGet]
-        //public IHttpActionResult Get(int? page)
+        //[HttpPost]
+        //public async Task<IHttpActionResult> Create()
         //{
-        //    int currentPage = 0;
-        //    if (page != null)
-        //    {
-        //        currentPage = (int)page;
-        //    }
+        //    Product product = new Product();
+        //    return await this.UpdateProduct(product, true);
+        //}
 
-        //    var products = this.data
+        //[HttpPut]
+        //public async Task<IHttpActionResult> Update(int id)
+        //{
+        //    var product = this.data
         //        .Products
         //        .All()
-        //        .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name })
-        //        .OrderBy(p => p.Name)
-        //        .Skip(currentPage * PageSize)
-        //        .Take(PageSize)
-        //        .ToList();
+        //        .Where(p => p.ProductId == id)
+        //        .FirstOrDefault();
 
-        //    return Ok(products);
+        //    if (product == null)
+        //    {
+        //        return BadRequest(String.Format(ProductNotFoundMessage, id));
+        //    }
+
+        //    return await this.UpdateProduct(product, false);
         //}
 
         [HttpGet]
@@ -91,7 +71,7 @@ namespace Products.WebApi.Controllers
                 .Products
                 .All()
                 .Where(p => p.ProductId == id)
-                .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name })
+                .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name, CategoryId = p.CategoryId })
                 .FirstOrDefault();
 
             if (product == null)
@@ -120,11 +100,13 @@ namespace Products.WebApi.Controllers
             }
 
             var result = products
-                .Select(p => new ProductModel() { 
-                    ProductId = p.ProductId, 
-                    Name = p.Name, 
-                    Description = p.Description, 
-                    CategoryName = p.Category.Name })
+                .Select(p => new ProductModel()
+                {
+                    ProductId = p.ProductId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    CategoryName = p.Category.Name
+                })
                 .OrderBy(p => p.Name)
                 .Skip(page * PageSize)
                 .Take(PageSize);
@@ -155,7 +137,8 @@ namespace Products.WebApi.Controllers
             return Ok();
         }
 
-        private async Task<IHttpActionResult> UpdateProduct(Product dbProduct, bool isNewProduct)
+        [HttpPost]
+        public async Task<IHttpActionResult> UpdateProduct()
         {
             if (!Request.Content.IsMimeMultipartContent())
             {
@@ -168,8 +151,7 @@ namespace Products.WebApi.Controllers
             try
             {
                 await Request.Content.ReadAsMultipartAsync(provider);
-
-                //Product name
+                //Validate product name
                 if (provider.FormData.GetValues("name") == null)
                 {
                     return this.BadRequest(EmptyProductNameMessage);
@@ -181,15 +163,7 @@ namespace Products.WebApi.Controllers
                     return this.BadRequest(EmptyProductNameMessage);
                 }
 
-                dbProduct.Name = name;
-
-                //Product description
-                if (provider.FormData.GetValues("description") != null)
-                {
-                    dbProduct.Description = provider.FormData.GetValues("description")[0];
-                }
-
-                //Product category;
+                //Validate product category;
                 if (provider.FormData.GetValues("categoryid") == null)
                 {
                     return this.BadRequest(EmptyCategoryMessage);
@@ -215,9 +189,60 @@ namespace Products.WebApi.Controllers
                     return BadRequest(String.Format(NonExistingCategoryMessage, categoryId));
                 }
 
+                //Validate http method
+                var httpMethodInForm = provider.FormData.GetValues("method");
+                if (httpMethodInForm == null)
+                {
+                    return BadRequest();
+                }
+                
+                string httpMethod = httpMethodInForm[0];
+                if (httpMethod != "put" && httpMethod != "post")
+                {
+                    return BadRequest();
+                }
+
+                Product dbProduct;
+                if (httpMethod == "put")
+                {
+                    var productIdInForm = provider.FormData.GetValues("id");
+                    if (productIdInForm == null)
+                    {
+                        return BadRequest();
+                    }
+
+                    int id;
+                    if (!int.TryParse(productIdInForm[0], out id))
+                    {
+                        return BadRequest();
+                    }
+
+                    dbProduct = this.data
+                                .Products
+                                .All()
+                                .Where(p => p.ProductId == id)
+                                .FirstOrDefault();
+
+                    if (dbProduct == null)
+                    {
+                        return BadRequest(String.Format(ProductNotFoundMessage, id));
+                    }
+                }
+                else
+                {
+                    dbProduct = new Product();
+                }
+
+                //Set product fields
+                dbProduct.Name = name;
+                if (provider.FormData.GetValues("description") != null)
+                {
+                    dbProduct.Description = provider.FormData.GetValues("description")[0];
+                }
+
                 dbProduct.CategoryId = categoryId;
 
-                //Product image
+                //Set product image
                 if (provider.FileData.Count > 0)
                 {
                     MultipartFileData file = provider.FileData[0];
@@ -228,7 +253,7 @@ namespace Products.WebApi.Controllers
                     }
                 }
 
-                if (isNewProduct)
+                if (httpMethod == "post")
                 {
                     this.data
                         .Products
