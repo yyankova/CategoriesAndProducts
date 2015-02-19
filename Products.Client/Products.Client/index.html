@@ -28,11 +28,14 @@
             <ul id="products-list"></ul>
             <input id="prev-page" type="button" value="Previous" disabled="disabled" />
             <input id="next-page" type="button" value="Next" />
-        </div>        
+        </div>
+        <div>
+            <input id="create-product-btn" type="button" value="Create new product"/>
+        </div>
         <div id="update">
             <form id="update-form" enctype="multipart/form-data">
-                <input type="hidden" name="method" value="put" />
-                <input type="hidden" name="id" id="product-id"/>
+                <input id="http-method" type="hidden" name="method" value="put" />
+                <input type="hidden" name="id" id="product-id" />
                 <img width="200" height="100" />
                 <br />
                 <label for="name">Name </label>
@@ -43,7 +46,7 @@
                 <br />
                 <label for="category">Category</label>
                 <select id="category" name="categoryid">
-                    <option id="0"></option>
+                    <option id=""></option>
                 </select>
                 <br />
                 <label for="image-file">Image </label>
@@ -56,8 +59,8 @@
     </div>
 
     <script src="scripts/lib/jquery-1.11.2.min.js"></script>
-    <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src="scripts/http-module.js"></script>
+
     <script>
         //TODO: organize code in separate files
         var baseUrl = 'http://localhost:53043/api/';
@@ -70,22 +73,27 @@
         var $productsList = $('#products-list');
         var $updateDiv = $('#update');
 
-        httpModule.get(categoriesBaseUrl, onLoadSearchCategories, onError);
+        //Main script
+        httpModule.get(categoriesBaseUrl, onLoadSearchCategories, displayError);
         loadProducts();
         $updateDiv.hide();
 
+        //Register events
         $searchProductName.keyup(function () {
             currentPage = 0;
             loadProducts();
         });
+
         $searchProductCategory.change(function () {
             currentPage = 0;
             loadProducts();
         });
+
         $('#prev-page').click(function () {
             currentPage -= 1;
             loadProducts();
         });
+
         $('#next-page').click(function () {
             currentPage += 1;
             $('#prev-page').removeAttr('disabled');
@@ -104,7 +112,7 @@
                     $updateDiv.hide();
                     alert('Product with id ' + data + ' was updated');
                 },
-                error: onError,
+                error: displayError,
                 cache: false,
                 contentType: false,
                 processData: false
@@ -112,22 +120,32 @@
 
             return false;
         });
+
         $('#cancel-update').click(function () {
             $updateDiv.hide();
         });
 
+        $('#create-product-btn').click(function () {
+            $updateDiv.show();
+            $updateDiv.find('#http-method').attr('value', 'post');
+            httpModule.get(categoriesBaseUrl, function (categories) {
+                onLoadUpdateCategories(categories);
+            }, displayError);
+        });
+
+        //Function declarations
         function loadProducts() {
             var name = $searchProductName.val();
             var categoryId = $searchProductCategory.find(':selected').attr('value');
             var searchUrl = productsBaseUrl + '?name=' + name + '&category=' + categoryId + '&page=' + currentPage;
-            httpModule.get(searchUrl, renderProducts, onError);
+            httpModule.get(searchUrl, renderProducts, displayError);
             if (currentPage == 0) {
                 $('#prev-page').attr('disabled', 'disabled');
             }
             //TODO: last page disable
         }
 
-        function renderProducts(products) {            
+        function renderProducts(products) {
             $productsList.children().remove();
 
             var $listItem = $('<li/>')
@@ -147,43 +165,45 @@
                 $productsList.append($currentListItem);
             }
 
-            $productsList.off().on("click", ".edit", onProductEdit);
-            $productsList.on("click", ".delete", onProductDelete);
+            $productsList.off();
+            $productsList.on("click", ".edit", onSelectProductToEdit);
+            $productsList.on("click", ".delete", onSelectProductToDelete);
         }
 
-        function onProductDelete() {
+        function onSelectProductToDelete() {
             var $listElement = $(this).parent();
             var result = confirm('Delete product ' + $listElement.find('.name').text());
             if (result == true) {
                 var id = $listElement.attr('id');
                 httpModule.del(productsBaseUrl + id,
                     {},
-                    function(){
+                    function () {
                         $productsList.find('#' + id).remove();
                     },
-                    onError);
+                    displayError);
             }
         }
 
-        function onProductEdit() {
+        function onSelectProductToEdit() {
             var id = $(this).parent().attr('id');
             var categoryForUpdatedProduct = $updateDiv.find('#category');
             httpModule.get(productsBaseUrl + 'byid/' + id, function (product) {
-                httpModule.get(categoriesBaseUrl, onLoadUpdateCategories, onError);
+                httpModule.get(categoriesBaseUrl, onLoadUpdateCategories, displayError);
                 //TODO: call in call-back
                 $updateDiv.show();
+                $updateDiv.find('#http-method').attr('value', 'put');
                 $updateDiv.find('#product-id').val(id);
                 $updateDiv.find('#name').val(product.Name);
                 $updateDiv.find('#description').val(product.Description);
                 categoryForUpdatedProduct.val(product.CategoryId);
                 $updateDiv.find('img').attr('src', productsBaseUrl + 'img/' + id);
-            }, onError);
+            }, displayError);
         }
 
         function onLoadSearchCategories(categories) {
             renderCategories(categories, $searchProductCategory);
         }
-        
+
         function onLoadUpdateCategories(categories) {
             renderCategories(categories, $updateDiv.find('#category'));
         }
@@ -199,10 +219,9 @@
             }
         }
 
-        function onError(err) {
+        function displayError(err) {
             $('#error-message').text(err.message);
         }
     </script>
 </body>
-
 </html>
