@@ -252,7 +252,7 @@ namespace Products.WebApi.Controllers
                     if (file != null)
                     {
                         dbProduct.Image = File.ReadAllBytes(file.LocalFileName);
-                        string fileName = file.Headers.ContentDisposition.FileName;
+                        string fileName = file.Headers.ContentDisposition.FileName.Trim('"');
                         dbProduct.ImageExtension = Path.GetExtension(fileName);
                         File.Delete(file.LocalFileName);
                     }

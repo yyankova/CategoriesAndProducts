@@ -47,7 +47,7 @@
                 </select>
                 <br />
                 <label for="image-file">Image </label>
-                <input id="image-file" type="file" />
+                <input id="image-file" name="image-file" type="file" />
                 <br />
                 <input id="cancel-update" type="button" value="Cancel" />
                 <input type="submit" value="Update" />
@@ -56,6 +56,7 @@
     </div>
 
     <script src="scripts/lib/jquery-1.11.2.min.js"></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src="scripts/http-module.js"></script>
     <script>
         //TODO: organize code in separate files
@@ -90,9 +91,9 @@
             $('#prev-page').removeAttr('disabled');
             loadProducts();
         });
+
         $("#update-form").submit(function () {
-            //TODO: fix file is not sent
-            var formData = new FormData($(this)[0]);
+            var formData = new FormData(this);
 
             $.ajax({
                 url: productsBaseUrl,
@@ -101,7 +102,7 @@
                 async: false,
                 success: function (data) {
                     $updateDiv.hide();
-                    alert('Product with id ' + data + 'was updated');
+                    alert('Product with id ' + data + ' was updated');
                 },
                 error: onError,
                 cache: false,
