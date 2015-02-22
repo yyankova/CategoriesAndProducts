@@ -168,6 +168,7 @@
     </Compile>
     <Compile Include="Models\CategoryModel.cs" />
     <Compile Include="Models\ProductModel.cs" />
+    <Compile Include="Models\ProductSummaryModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

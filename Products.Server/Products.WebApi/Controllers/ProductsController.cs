@@ -74,7 +74,13 @@ namespace Products.WebApi.Controllers
                 .Products
                 .All()
                 .Where(p => p.ProductId == id)
-                .Select(p => new ProductModel() { ProductId = p.ProductId, Name = p.Name, Description = p.Description, CategoryName = p.Category.Name, CategoryId = p.CategoryId })
+                .Select(p => new ProductModel() { 
+                    ProductId = p.ProductId, 
+                    Name = p.Name, 
+                    Description = p.Description, 
+                    CategoryName = p.Category.Name, 
+                    CategoryId = p.CategoryId 
+                })
                 .FirstOrDefault();
 
             if (product == null)
@@ -103,12 +109,11 @@ namespace Products.WebApi.Controllers
             }
 
             var result = products
-                .Select(p => new ProductModel()
+                .Select(p => new ProductSummaryModel()
                 {
                     ProductId = p.ProductId,
                     Name = p.Name,
-                    Description = p.Description,
-                    CategoryName = p.Category.Name
+                    HasImage = p.Image == null ? false : true
                 })
                 .OrderBy(p => p.Name)
                 .Skip(page * PageSize)
@@ -253,7 +258,7 @@ namespace Products.WebApi.Controllers
                     {
                         dbProduct.Image = File.ReadAllBytes(file.LocalFileName);
                         string fileName = file.Headers.ContentDisposition.FileName.Trim('"');
-                        dbProduct.ImageExtension = Path.GetExtension(fileName);
+                        dbProduct.ImageExtension = Path.GetExtension(fileName).Trim('.');
                         File.Delete(file.LocalFileName);
                     }
                 }

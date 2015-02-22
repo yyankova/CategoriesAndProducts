@@ -36,7 +36,7 @@
             <form id="update-form" enctype="multipart/form-data">
                 <input id="http-method" type="hidden" name="method" value="put" />
                 <input type="hidden" name="id" id="product-id" />
-                <img width="200" height="100" />
+                <img id="uploaded-image" width="200" height="100" />
                 <br />
                 <label for="name">Name </label>
                 <input id="name" name="name" type="text" />
@@ -63,6 +63,12 @@
 
     <script>
         //TODO: organize code in separate files
+        //TODO: pass parameters to load
+        //TODO: last page disable
+        //TODO: manage categories
+        //TODO: styles
+        //TODO: organize html
+
         var baseUrl = 'http://localhost:53043/api/';
         var productsBaseUrl = baseUrl + 'products/';
         var categoriesBaseUrl = baseUrl + 'categories/';
@@ -79,6 +85,7 @@
         $updateDiv.hide();
 
         //Register events
+        $('#image-file').change(onSelectImage);
         $searchProductName.keyup(function () {
             currentPage = 0;
             loadProducts();
@@ -101,7 +108,8 @@
         });
 
         $("#update-form").submit(function () {
-            var formData = new FormData(this);
+            var form = this;
+            var formData = new FormData(form);
 
             $.ajax({
                 url: productsBaseUrl,
@@ -111,6 +119,11 @@
                 success: function (data) {
                     $updateDiv.hide();
                     alert('Product with id ' + data + ' was updated');
+                    var $productListItem = $productsList.find('#' + data);
+                    var now = new Date();
+                    $productListItem.find('img').attr('src', productsBaseUrl + 'img/' + data + '?' + now.getTime());
+                    var newName = $(form).find('#name').val();
+                    $productListItem.find('.name').html(newName);
                 },
                 error: displayError,
                 cache: false,
@@ -133,7 +146,15 @@
             }, displayError);
         });
 
-        //Function declarations
+        function onSelectImage() {
+            var oFReader = new FileReader();
+            oFReader.readAsDataURL(document.getElementById("image-file").files[0]);
+            oFReader.onload = function (oFREvent) {
+                var source = oFREvent.target.result;
+                document.getElementById("uploaded-image").src = source;
+            };
+        }
+
         function loadProducts() {
             var name = $searchProductName.val();
             var categoryId = $searchProductCategory.find(':selected').attr('value');
@@ -142,7 +163,6 @@
             if (currentPage == 0) {
                 $('#prev-page').attr('disabled', 'disabled');
             }
-            //TODO: last page disable
         }
 
         function renderProducts(products) {
@@ -160,7 +180,9 @@
                 var product = products[i];
                 var $currentListItem = $listItem.clone();
                 $currentListItem.attr('id', product.ProductId);
-                $currentListItem.find('img').attr('src', productsBaseUrl + 'img/' + product.ProductId);
+                if (product.HasImage) {
+                    $currentListItem.find('img').attr('src', productsBaseUrl + 'img/' + product.ProductId);
+                }
                 $currentListItem.find('.name').html(product.Name);
                 $productsList.append($currentListItem);
             }
@@ -188,15 +210,16 @@
             var id = $(this).parent().attr('id');
             var categoryForUpdatedProduct = $updateDiv.find('#category');
             httpModule.get(productsBaseUrl + 'byid/' + id, function (product) {
-                httpModule.get(categoriesBaseUrl, onLoadUpdateCategories, displayError);
-                //TODO: call in call-back
-                $updateDiv.show();
-                $updateDiv.find('#http-method').attr('value', 'put');
-                $updateDiv.find('#product-id').val(id);
-                $updateDiv.find('#name').val(product.Name);
-                $updateDiv.find('#description').val(product.Description);
-                categoryForUpdatedProduct.val(product.CategoryId);
-                $updateDiv.find('img').attr('src', productsBaseUrl + 'img/' + id);
+                httpModule.get(categoriesBaseUrl, function (data) {
+                    onLoadUpdateCategories(data);
+                    $updateDiv.show();
+                    $updateDiv.find('#http-method').attr('value', 'put');
+                    $updateDiv.find('#product-id').val(id);
+                    $updateDiv.find('#name').val(product.Name);
+                    $updateDiv.find('#description').val(product.Description);
+                    categoryForUpdatedProduct.val(product.CategoryId);
+                    $updateDiv.find('img').attr('src', productsBaseUrl + 'img/' + id);
+                }, displayError);
             }, displayError);
         }
 
@@ -205,6 +228,11 @@
         }
 
         function onLoadUpdateCategories(categories) {
+            var $categoriesCombo = $updateDiv.find('#category');
+            if ($categoriesCombo.children().length > 1) {
+                return;
+            }
+
             renderCategories(categories, $updateDiv.find('#category'));
         }
 
@@ -220,7 +248,7 @@
         }
 
         function displayError(err) {
-            $('#error-message').text(err.message);
+            $('#error-message').html(JSON.parse(err.responseText).Message);
         }
     </script>
 </body>
